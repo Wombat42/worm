@@ -1,2 +1,0 @@
-# worm
-Created with CodeSandbox
