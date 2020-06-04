@@ -31,6 +31,7 @@ export default class Worm {
   add(x = 0, y = 0) {
     let temp = { x, y, next: this.head };
     this.head = temp;
+    return temp;
   }
 
   removeTail() {

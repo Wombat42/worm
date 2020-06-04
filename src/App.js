@@ -33,15 +33,26 @@ for (let y = 0; y < 16; y++) {
 const worm = new Worm();
 
 export default function App() {
-  debugger;
-  const [lastMove, setLastMove] = useState(worm.moveRight);
+  console.log(worm);
+  const [lastMove, setLastMove] = useState("moveRight");
   useEffect(() => {
     console.log(board);
     //setInterval(() => {
     // move worm
-    lastMove.call(worm);
+    for (let counter = 0; counter < 5; counter++) {
+      worm[lastMove].call(worm);
+      let { head } = worm;
+      while (head) {
+        console.log(head);
+        const { x, y, next } = head;
+        x = x || 1;
+        y = y || 1;
+        boardRefs[x * y].current.style.backgroundColor = "red";
+        head = next;
+      }
+    }
     // }, 2000);
-  }, [lastMove]);
+  }, [lastMove, worm]);
 
   return (
     <div className="App">
