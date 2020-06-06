@@ -13,11 +13,11 @@ export default class Worm {
   }
 
   moveUp() {
-    this.add(this.head.x, this.head.y + 1);
+    this.add(this.head.x, this.head.y - 1);
   }
 
   moveDown() {
-    this.add(this.head.x, this.head.y - 1);
+    this.add(this.head.x, this.head.y + 1);
   }
 
   getLength() {
