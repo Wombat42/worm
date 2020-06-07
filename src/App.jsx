@@ -1,16 +1,18 @@
-import React, { useEffect, useState, useRef } from "react";
-import "./styles.css";
-import { library } from "@fortawesome/fontawesome-svg-core";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCoffee } from "@fortawesome/free-solid-svg-icons";
-import Worm from "./worm";
-import styled from "styled-components";
+import React, { useEffect, useState, useRef } from 'react';
+import { hot } from 'react-hot-loader/root';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCoffee } from '@fortawesome/free-solid-svg-icons';
+import styled from 'styled-components';
+import Worm from './worm';
+import theme from './theme';
+
 library.add(faCoffee);
 
 const Cell = styled.div`
   width: 16px;
   height: 16px;
-  background-color: grey;
+  background-color: ${(props) => props.theme.board.background};
 `;
 const Main = styled.div`
   width: 500px;
@@ -23,23 +25,22 @@ const Screen = styled.div`
 
 const Stats = styled.div`
   display: grid;
-  grid-template-rows: repeat(16, 16px);
+  grid-template-rows: repeat(32, 16px);
 `;
 
 const Board = styled.div`
   display: grid;
-  grid-template-columns: repeat(16, 16px);
-  grid-gap: 1px;
+  grid-template-columns: repeat(32, 16px);
 `;
 
 const board = [];
 const boardRefs = [];
-const xSize = 16;
-const ySize = 16;
+const xSize = 32;
+const ySize = 32;
 let key = 0;
 for (let y = 0; y < ySize; y++) {
   for (let x = 0; x < xSize; x++) {
-    let ref = React.createRef();
+    const ref = React.createRef();
     board.push(React.createElement(Cell, { x, y, key, ref }));
     boardRefs.push(ref);
     key++;
@@ -61,7 +62,7 @@ function useInterval(callback, delay, stop = false) {
       saveCallback.current();
     }
 
-    let intervalId = setInterval(tick, delay);
+    const intervalId = setInterval(tick, delay);
     setIntervalState(intervalId);
     return () => clearInterval(intervalId);
   }, [delay]);
@@ -73,31 +74,36 @@ function useInterval(callback, delay, stop = false) {
   }, [stop, intervalState]);
 }
 
-export default function App() {
+function App() {
   console.log(worm);
   const inputRef = React.createRef();
-  const [lastMove, setLastMove] = useState("moveRight");
-  const [playState, setPlayState] = useState("ready");
+  const [lastMove, setLastMove] = useState('moveRight');
+  const [playState, setPlayState] = useState('ready');
   const [wormLocation, setWormLocation] = useState({});
 
   useInterval(
     () => {
+      console.log(inputRef);
       worm[lastMove].call(worm);
-      let { head, length } = worm;
+      const { length } = worm;
+      let { head } = worm;
       let prev;
       setWormLocation({ x: head.x, y: head.y });
       let segmentCounter = 0;
       while (head) {
-        let { x, y, next } = head;
-        x = x || 1;
-        y = y || 1;
-        if (x > xSize - 1 || x < 1 || y < 1 || y > ySize - 1) {
-          setPlayState("stop");
+        const { next, x, y } = head;
+        if (x > xSize - 1 || x < 0 || y < 0 || y > ySize - 1) {
+          setPlayState('stop');
           break;
         } else {
-          let color = segmentCounter < length ? "red" : "grey";
-          boardRefs[x + y * xSize].current.style.backgroundColor = color;
-          if (color === "grey") {
+          const color =
+            segmentCounter < length
+              ? theme.board.caterpillar
+              : theme.board.background;
+          boardRefs[
+            x + y * xSize
+          ].current.style.backgroundColor = color;
+          if (color === theme.board.background) {
             prev.next = null;
           }
           prev = head;
@@ -108,24 +114,24 @@ export default function App() {
       }
     },
     400,
-    playState === "stop"
+    playState === 'stop',
   );
 
   const handleKeyDown = (event) => {
-    console.log("key", event.key);
+    console.log('key', event.key);
     let newMove;
     switch (event.key) {
-      case "ArrowLeft":
-        newMove = "moveLeft";
+      case 'ArrowLeft':
+        newMove = 'moveLeft';
         break;
-      case "ArrowUp":
-        newMove = "moveUp";
+      case 'ArrowUp':
+        newMove = 'moveUp';
         break;
-      case "ArrowDown":
-        newMove = "moveDown";
+      case 'ArrowDown':
+        newMove = 'moveDown';
         break;
       default:
-        newMove = "moveRight";
+        newMove = 'moveRight';
         break;
     }
     worm.add(worm.head.x, worm.head.y);
@@ -146,7 +152,12 @@ export default function App() {
             <div>{lastMove}</div>
             <div>{playState}</div>
             <div>
-              <input ref={inputRef} type="text" onKeyDown={handleKeyDown} />
+              <input
+                ref={inputRef}
+                type="text"
+                autoFocus
+                onKeyDown={handleKeyDown}
+              />
             </div>
           </Stats>
         </Screen>
@@ -154,3 +165,5 @@ export default function App() {
     </div>
   );
 }
+
+export default hot(App);
