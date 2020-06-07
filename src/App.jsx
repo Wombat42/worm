@@ -33,21 +33,26 @@ const Board = styled.div`
   grid-template-columns: repeat(32, 16px);
 `;
 
-const board = [];
-const boardRefs = [];
+let board;
+let boardRefs;
 const xSize = 32;
 const ySize = 32;
-let key = 0;
-for (let y = 0; y < ySize; y++) {
-  for (let x = 0; x < xSize; x++) {
-    const ref = React.createRef();
-    board.push(React.createElement(Cell, { x, y, key, ref }));
-    boardRefs.push(ref);
-    key++;
+let worm = null;
+
+function setup() {
+  worm = new Worm();
+  board = [];
+  boardRefs = [];
+  let key = 0;
+  for (let y = 0; y < ySize; y++) {
+    for (let x = 0; x < xSize; x++) {
+      const ref = React.createRef();
+      board.push(React.createElement(Cell, { x, y, key, ref }));
+      boardRefs.push(ref);
+      key++;
+    }
   }
 }
-
-const worm = new Worm();
 
 function useInterval(callback, delay, stop = false) {
   const saveCallback = useRef();
@@ -75,41 +80,52 @@ function useInterval(callback, delay, stop = false) {
 }
 
 function App() {
-  console.log(worm);
   const inputRef = React.createRef();
   const [lastMove, setLastMove] = useState('moveRight');
-  const [playState, setPlayState] = useState('ready');
+  const [playState, setPlayState] = useState('init');
   const [wormLocation, setWormLocation] = useState({});
+
+  useEffect(() => {
+    if (playState === 'init') {
+      setup();
+      setPlayState('running');
+    }
+  }, [playState]);
 
   useInterval(
     () => {
-      console.log(inputRef);
-      worm[lastMove].call(worm);
-      const { length } = worm;
-      let { head } = worm;
-      let prev;
-      setWormLocation({ x: head.x, y: head.y });
-      let segmentCounter = 0;
-      while (head) {
-        const { next, x, y } = head;
-        if (x > xSize - 1 || x < 0 || y < 0 || y > ySize - 1) {
-          setPlayState('stop');
-          break;
-        } else {
-          const color =
-            segmentCounter < length
-              ? theme.board.caterpillar
-              : theme.board.background;
-          boardRefs[
-            x + y * xSize
-          ].current.style.backgroundColor = color;
-          if (color === theme.board.background) {
-            prev.next = null;
-          }
-          prev = head;
-          head = next;
+      if (playState === 'running') {
+        console.log(inputRef);
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+        worm[lastMove].call(worm);
+        const { length } = worm;
+        let { head } = worm;
+        let prev;
+        setWormLocation({ x: head.x, y: head.y });
+        let segmentCounter = 0;
+        while (head) {
+          const { next, x, y } = head;
+          if (x > xSize - 1 || x < 0 || y < 0 || y > ySize - 1) {
+            setPlayState('stop');
+            break;
+          } else {
+            const color =
+              segmentCounter < length
+                ? theme.board.caterpillar
+                : theme.board.background;
+            boardRefs[
+              x + y * xSize
+            ].current.style.backgroundColor = color;
+            if (color === theme.board.background) {
+              prev.next = null;
+            }
+            prev = head;
+            head = next;
 
-          segmentCounter++;
+            segmentCounter++;
+          }
         }
       }
     },
@@ -134,10 +150,15 @@ function App() {
         newMove = 'moveRight';
         break;
     }
-    worm.add(worm.head.x, worm.head.y);
-    worm.setLength(worm.getLength() + 1);
-    console.log(newMove);
-    setLastMove(newMove);
+    if (newMove !== lastMove) {
+      worm.grow(3);
+      console.log(newMove);
+      setLastMove(newMove);
+    }
+  };
+
+  const handleReset = () => {
+    setPlayState('init');
   };
 
   return (
@@ -155,9 +176,15 @@ function App() {
               <input
                 ref={inputRef}
                 type="text"
+                // eslint-disable-next-line jsx-a11y/no-autofocus
                 autoFocus
                 onKeyDown={handleKeyDown}
               />
+            </div>
+            <div>
+              <button type="button" onClick={handleReset}>
+                Reset
+              </button>
             </div>
           </Stats>
         </Screen>

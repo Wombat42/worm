@@ -1,5 +1,6 @@
 export default class Worm {
   constructor(x = 0, y = 0, length = 1) {
+    // eslint-disable-next-line no-multi-assign
     this.head = this.tail = this.add(x, y);
     this.length = length;
   }
@@ -29,19 +30,17 @@ export default class Worm {
   }
 
   add(x = 0, y = 0) {
-    let temp = { x, y, next: this.head };
+    const temp = { x, y, next: this.head };
     this.head = temp;
     return temp;
   }
 
-  removeTail() {
-    let node = this.head;
-    let prev = null;
-    for (let x = 0; x < this.length; x++) {
-      prev = node;
-      node = node.next;
+  grow(segments) {
+    for (let x = 0; x < segments; x++) {
+      const temp = { x: this.tail.x, y: this.tail.y, next: null };
+      this.tail.next = temp;
+      this.tail = temp;
     }
-    this.tail = prev;
-    this.tail.next = null;
+    this.length += segments;
   }
 }
